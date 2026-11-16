@@ -10,11 +10,13 @@ use Illuminate\Http\JsonResponse;
 
 class TeamCapacityController extends Controller
 {
+    public function __construct(private AppointmentCapacityService $capacity) {}
+
     /**
      * Daily capacity of a team on a business (Asia/Yangon) date.
      */
-    public function show(CapacityRequest $request, LspTeam $lspTeam, AppointmentCapacityService $capacity): JsonResponse
+    public function show(CapacityRequest $request, LspTeam $lspTeam): JsonResponse
     {
-        return response()->json($capacity->capacityFor($lspTeam, $request->validated('date'))->toArray());
+        return response()->json($this->capacity->capacityFor($lspTeam, $request->validated('date'))->toArray());
     }
 }

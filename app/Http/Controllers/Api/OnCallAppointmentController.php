@@ -10,14 +10,16 @@ use App\Services\AppointmentCapacityService;
 
 class OnCallAppointmentController extends Controller
 {
+    public function __construct(private AppointmentCapacityService $capacity) {}
+
     /**
      * Book or reschedule an on-call request's appointment.
      *
      * Authorization (team / area code / override permission) and validation run in the form request.
      */
-    public function store(BookAppointmentRequest $request, OnCallRequest $onCallRequest, AppointmentCapacityService $capacity): AppointmentBookingResource
+    public function store(BookAppointmentRequest $request, OnCallRequest $onCallRequest): AppointmentBookingResource
     {
-        return new AppointmentBookingResource($capacity->book(
+        return new AppointmentBookingResource($this->capacity->book(
             $onCallRequest,
             $request->appointmentDate(),
             $request->user(),

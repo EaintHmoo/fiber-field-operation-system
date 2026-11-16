@@ -76,7 +76,6 @@ class AppointmentCapacityService
     ): BookingResult {
         $overrideRequested = $overrideReason !== null;
 
-        // Callers check the policy too; repeated here so the service is safe on its own.
         if ($overrideRequested && ! $this->authorization->canOverrideCapacity($actor)) {
             throw new AuthorizationException('You do not have permission to override appointment capacity.');
         }

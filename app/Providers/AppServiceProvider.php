@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Enums\RequestType;
 use App\Repositories\Contracts\AppointmentRepositoryInterface;
+use App\Repositories\Contracts\AuthAccountRepositoryInterface;
 use App\Repositories\Contracts\BookingLogRepositoryInterface;
 use App\Repositories\Contracts\CapacityRepositoryInterface;
 use App\Repositories\Eloquent\EloquentAppointmentRepository;
+use App\Repositories\Eloquent\EloquentAuthAccountRepository;
 use App\Repositories\Eloquent\EloquentBookingLogRepository;
 use App\Repositories\Eloquent\EloquentCapacityRepository;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -22,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AppointmentRepositoryInterface::class, EloquentAppointmentRepository::class);
         $this->app->bind(CapacityRepositoryInterface::class, EloquentCapacityRepository::class);
         $this->app->bind(BookingLogRepositoryInterface::class, EloquentBookingLogRepository::class);
+        $this->app->bind(AuthAccountRepositoryInterface::class, EloquentAuthAccountRepository::class);
     }
 
     /**

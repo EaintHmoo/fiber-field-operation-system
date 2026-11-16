@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\IssueTokenRequest;
 use App\Models\LspUser;
 use App\Models\User;
+use App\Services\AuthTokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Laravel\Sanctum\NewAccessToken;
 
 /**
  * Issues Sanctum personal access tokens. LSP users and operators live in separate tables,
@@ -16,14 +18,26 @@ use Illuminate\Http\Response;
  */
 class AuthTokenController extends Controller
 {
+    public function __construct(private AuthTokenService $authTokens) {}
+
     public function storeLspUser(IssueTokenRequest $request): JsonResponse
     {
-        return $this->issue($request->authenticate(LspUser::class), $request->deviceName());
+        return $this->tokenResponse($this->authTokens->issueLspUserToken(
+            $request->email(),
+            $request->password(),
+            $request->deviceName(),
+            (string) $request->ip(),
+        ));
     }
 
     public function storeOperator(IssueTokenRequest $request): JsonResponse
     {
-        return $this->issue($request->authenticate(User::class), $request->deviceName());
+        return $this->tokenResponse($this->authTokens->issueOperatorToken(
+            $request->email(),
+            $request->password(),
+            $request->deviceName(),
+            (string) $request->ip(),
+        ));
     }
 
     /**
@@ -54,11 +68,12 @@ class AuthTokenController extends Controller
         return response()->noContent();
     }
 
-    private function issue(User|LspUser $actor, string $deviceName): JsonResponse
+    private function tokenResponse(NewAccessToken $token): JsonResponse
     {
         return response()->json([
-            'token' => $actor->createToken($deviceName)->plainTextToken,
+            'token' => $token->plainTextToken,
             'token_type' => 'Bearer',
+            'expires_at' => $token->accessToken->expires_at?->toIso8601String(),
         ], 201);
     }
 }

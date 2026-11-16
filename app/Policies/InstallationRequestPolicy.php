@@ -21,14 +21,4 @@ class InstallationRequestPolicy
             ? Response::allow()
             : Response::deny('You are not allowed to book appointments for this job.');
     }
-
-    /**
-     * Book the job's appointment beyond the team's daily capacity.
-     */
-    public function overrideCapacity(User|LspUser $actor, InstallationRequest $job): Response
-    {
-        return $this->authorization->canOverrideCapacity($actor)
-            ? Response::allow()
-            : Response::deny('You do not have permission to override appointment capacity.');
-    }
 }

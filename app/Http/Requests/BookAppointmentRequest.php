@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\InstallationRequest;
 use App\Models\OnCallRequest;
-use App\Services\AppointmentCapacityService;
+use App\Services\AuthorizationService;
 use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Auth\Access\Response;
@@ -24,12 +24,12 @@ class BookAppointmentRequest extends FormRequest
      * Runs before validation: a forbidden caller gets 403 without learning anything from 422s.
      * Sending override_reason at all is an override attempt and needs the override permission.
      */
-    public function authorize(): Response
+    public function authorize(AuthorizationService $authorization): Response
     {
         $response = Gate::inspect('bookAppointment', $this->job());
 
-        if ($response->allowed() && $this->isOverrideAttempt()) {
-            return Gate::inspect('overrideCapacity', $this->job());
+        if ($response->allowed() && $this->exists('override_reason') && ! $authorization->canOverrideCapacity($this->user())) {
+            return Response::deny('You do not have permission to override appointment capacity.');
         }
 
         return $response;
@@ -42,7 +42,7 @@ class BookAppointmentRequest extends FormRequest
     {
         return [
             'appointment_date' => ['required', 'string', 'date', $this->withinBookingWindow(...)],
-            'override_reason' => ['sometimes', 'required', 'string', 'min:'.AppointmentCapacityService::MIN_OVERRIDE_REASON_LENGTH, 'max:1000'],
+            'override_reason' => ['sometimes', 'required', 'string', 'max:1000'],
         ];
     }
 
@@ -71,11 +71,6 @@ class BookAppointmentRequest extends FormRequest
     public function overrideReason(): ?string
     {
         return $this->validated('override_reason');
-    }
-
-    private function isOverrideAttempt(): bool
-    {
-        return $this->exists('override_reason');
     }
 
     /**
