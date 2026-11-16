@@ -6,6 +6,9 @@ use App\Models\AppointmentBookingLog;
 use App\Models\Lsp;
 use App\Models\LspTeam;
 use App\Models\Status;
+use Carbon\CarbonImmutable;
+use DateTimeInterface;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
@@ -28,6 +31,25 @@ trait HasAppointmentBooking
         $this->mergeCasts([
             'appointment_date' => 'datetime',
         ]);
+    }
+
+    /**
+     * Eloquent formats a Carbon value without converting its timezone, so a Yangon-time value
+     * would be stored as Yangon wall-clock time. Normalise every write to the storage timezone.
+     *
+     * @return Attribute<Carbon|null, DateTimeInterface|string|null>
+     */
+    protected function appointmentDate(): Attribute
+    {
+        return Attribute::make(
+            set: fn (DateTimeInterface|string|null $value): ?string => match (true) {
+                $value === null => null,
+                $value instanceof DateTimeInterface => $this->fromDateTime(
+                    CarbonImmutable::instance($value)->setTimezone(config('app.timezone')),
+                ),
+                default => $this->fromDateTime($value),
+            },
+        );
     }
 
     /**

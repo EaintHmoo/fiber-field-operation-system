@@ -25,6 +25,14 @@ enum RequestType: string
     }
 
     /**
+     * The type of the given job model.
+     */
+    public static function forModel(InstallationRequest|OnCallRequest $job): self
+    {
+        return self::from($job->getMorphClass());
+    }
+
+    /**
      * Morph map entries: alias => model class.
      *
      * @return array<string, class-string<InstallationRequest|OnCallRequest>>

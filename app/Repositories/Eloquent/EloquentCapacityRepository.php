@@ -19,10 +19,16 @@ class EloquentCapacityRepository implements CapacityRepositoryInterface
     }
 
     /**
-     * Lock first, insert only when missing. Running insertOrIgnore() unconditionally would make
-     * InnoDB take a shared lock on the existing duplicate row; two concurrent bookings would then
-     * both try to upgrade to an exclusive lock and deadlock on every contended booking. A race on
-     * the very first insert can still deadlock; the caller's transaction retries resolve that.
+     * Lock first; insert the default row only when the locking read finds nothing.
+     *
+     * - No plain (non-locking) read may run before this lock: under REPEATABLE READ the first
+     *   plain read fixes the transaction's snapshot, and a snapshot taken before the lock would
+     *   hide bookings committed by the transaction that held it. The slot count that follows
+     *   the lock is the first plain read, so it sees every booking committed before.
+     * - insertOrIgnore() is not run unconditionally: on an existing row InnoDB takes a shared
+     *   lock on the duplicate, and two bookings upgrading shared to exclusive deadlock.
+     * - When the row is missing, racing locking reads take gap locks that can deadlock the
+     *   inserts. That happens only until the row exists; the caller's transaction retries.
      */
     public function lockOrCreate(int $lspTeamId, int $dayOfWeek, int $defaultMaxSlots): LspTeamDailyCapacity
     {

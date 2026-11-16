@@ -96,6 +96,9 @@ class DemoDataSeeder extends Seeder
         // A day inside the 60-day booking window, 10:00 Yangon, converted to UTC for storage.
         $demoDay = CarbonImmutable::now($timezone)->addDays(7)->setTime(10, 0)->utc();
 
+        // A1 is already at its default cap of 8 on this day, so the ninth booking is rejected.
+        $fullDay = CarbonImmutable::now($timezone)->addDays(14)->setTime(9, 0)->utc();
+
         // 2026-04-02 00:30 Yangon == 2026-04-01 18:00 UTC; must count on 2 April.
         $yangonBoundary = CarbonImmutable::parse('2026-04-02 00:30:00', $timezone)->utc();
 
@@ -133,6 +136,16 @@ class DemoDataSeeder extends Seeder
         // #2: Team A1, unbooked. #3: Team B1, unbooked.
         $this->createJob(OnCallRequest::class, $teamA1, JobStatus::Pending);
         $this->createJob(OnCallRequest::class, $teamB1, JobStatus::Pending);
+
+        // Full day: 8 slot-consuming Team A1 jobs across both tables and several counting statuses.
+        // installation_requests #13-#17, on_call_requests #4-#6.
+        foreach ([JobStatus::Pending, JobStatus::Submitted, JobStatus::OnGoing, JobStatus::InProgress, JobStatus::Complete] as $status) {
+            $this->createJob(InstallationRequest::class, $teamA1, $status, $fullDay);
+        }
+
+        foreach ([JobStatus::Pending, JobStatus::Submitted, JobStatus::OnGoing] as $status) {
+            $this->createJob(OnCallRequest::class, $teamA1, $status, $fullDay);
+        }
     }
 
     /**

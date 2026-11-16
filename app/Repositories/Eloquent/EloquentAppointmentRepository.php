@@ -49,13 +49,14 @@ class EloquentAppointmentRepository implements AppointmentRepositoryInterface
 
     public function updateAppointmentDate(InstallationRequest|OnCallRequest $job, DateTimeInterface $appointmentDate): void
     {
-        $job->appointment_date = $this->toStorageTimezone($appointmentDate);
+        // The model's appointment_date mutator converts to the storage timezone.
+        $job->appointment_date = $appointmentDate;
         $job->save();
     }
 
     /**
-     * Eloquent and the query builder format dates without converting timezones, so normalise
-     * to the storage timezone (config app.timezone, UTC) before any read or write.
+     * The query builder formats date bindings without converting timezones, so normalise
+     * range bounds to the storage timezone (config app.timezone, UTC).
      */
     private function toStorageTimezone(DateTimeInterface $date): CarbonImmutable
     {
