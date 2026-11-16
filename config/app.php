@@ -69,6 +69,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Business Timezone
+    |--------------------------------------------------------------------------
+    |
+    | Datetimes are stored in UTC (the application timezone above). Every
+    | business "calendar day" decision - capacity counting, weekday lookup,
+    | the 60-day booking window - is made in this timezone instead.
+    |
+    */
+
+    'business_timezone' => 'Asia/Yangon',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

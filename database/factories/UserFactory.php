@@ -34,6 +34,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Operator who may act on every LSP team regardless of area codes.
+     */
+    public function superAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_super_admin' => true,
+        ]);
+    }
+
+    /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static

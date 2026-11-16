@@ -3,19 +3,25 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\PermissionName;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password'])]
+/**
+ * Operator (5BB internal staff). Authenticates with Sanctum personal access tokens.
+ */
+#[Fillable(['name', 'email', 'password', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -27,6 +33,37 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * @return BelongsToMany<OperatorTeam, $this>
+     */
+    public function operatorTeams(): BelongsToMany
+    {
+        return $this->belongsToMany(OperatorTeam::class);
+    }
+
+    /**
+     * @return BelongsToMany<Permission, $this>
+     */
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class);
+    }
+
+    /**
+     * Determine whether the operator has been granted the named permission.
+     */
+    public function hasPermission(PermissionName|string $permission): bool
+    {
+        $permission = $permission instanceof PermissionName ? $permission->value : $permission;
+
+        if ($this->relationLoaded('permissions')) {
+            return $this->permissions->contains('name', $permission);
+        }
+
+        return $this->permissions()->where('name', $permission)->exists();
     }
 }
