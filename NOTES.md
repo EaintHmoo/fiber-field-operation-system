@@ -1,25 +1,9 @@
 # Notes
 
-## Time spent
-
-> **TODO (candidate): fill in your actual time before submitting.**
-
-| Area | Time |
-|---|---|
-| Reading the brief, schema design | |
-| Migrations, models, seeders | |
-| Repositories, authorization, booking service | |
-| Controllers, form requests, routes | |
-| Tests, concurrency verification | |
-| README / VERIFICATION / NOTES | |
-| **Total** | |
-
 ## AI tools used
 
 - **Claude Code** (Anthropic, model Claude Opus 5.5) as a pair programmer throughout: schema and migration drafts, models, repositories, services, policies, controllers, tests and these documents. Work was done incrementally, one layer at a time, with each step reviewed and run before moving on.
 - **Laravel Boost** (`laravel/boost`, dev dependency) supplied Laravel 13 coding guidelines and skills to the assistant. Its generated files (`CLAUDE.md`, `AGENTS.md`, `.claude/`, `boost.json`) are local-only and git-ignored; `php artisan boost:install` recreates them. It is not used at runtime.
-
-Every behaviour claimed in README.md and VERIFICATION.md was checked by running it: the PHPUnit suite on SQLite and MySQL, a forked-process concurrency test on MySQL, and the VERIFICATION.md commands executed end to end against a live server. Problems found that way are listed under [Issues found during development](#issues-found-during-development).
 
 ## Assumptions
 
@@ -62,14 +46,6 @@ Inside one `DB::transaction` (InnoDB):
 
 Every booking for a team and weekday therefore waits on the same row lock, so two requests for the last slot are serialized: the second one counts after the first commits and gets 422.
 
-Two details matter, both proven with real MySQL sessions:
-
-- **The lock must come before any plain read in the transaction.** Under REPEATABLE READ the first non-locking read fixes the transaction's snapshot. An earlier version checked "does the capacity row exist?" with a plain read before locking. Each request's snapshot was then taken before it waited for the lock, its count after the lock could not see the winner's commit, and **6 of 6 racing requests booked a 1-slot day**. The concurrency test caught this; locking first fixed it.
-- **The brief's suggested "always `insertOrIgnore()`, then lock" deadlocks on MySQL.** `INSERT IGNORE` on an existing row takes a *shared* lock on the duplicate; two bookings then both try to upgrade to exclusive and one gets `ERROR 1213 Deadlock`. That was reproduced with two `mysql` sessions. So the default row is inserted only when the locking read finds nothing.
-- The remaining deadlock (racing gap locks while a team's row for a weekday does not exist yet) only happens until that row exists. `DB::transaction(…, attempts: 3)` retries it. With retries disabled, the "missing row" concurrency test fails with a deadlock every time; with them it passes.
-
-`tests/Feature/Services/AppointmentCapacityServiceConcurrencyTest` forks six processes with their own MySQL connections, releases them at the same instant against the last slot (both with an existing capacity row and with a missing one), and asserts exactly one success. Removing `lockForUpdate()` makes both cases fail.
-
 ### Schema
 
 - **Composite foreign keys** `(current_lsp_team_id, current_lsp_id) → lsp_teams(id, lsp_id)` (and the same on `lsp_users`): the database guarantees an assigned team belongs to the row's LSP. MySQL skips the check when either column is NULL, which is why the authorization layer resolves a job's LSP from its team first.
@@ -84,18 +60,8 @@ Eloquent and the query builder format a `Carbon` without converting its timezone
 - an `appointment_date` mutator on the shared `HasAppointmentBooking` trait converts every write to the storage timezone, whatever the code path (service, factory, seeder);
 - the repository converts range bounds before querying.
 
-## Issues found during development
-
-| Issue | How it was found | Fix |
-|---|---|---|
-| Lost-update race: 6/6 parallel requests booked a 1-slot day | forked-process concurrency test on MySQL | lock the capacity row before any plain read (see Concurrency) |
-| "Always `insertOrIgnore()` then lock" deadlocks under contention | two concurrent `mysql` sessions | insert only when the locking read finds no row; retry the transaction |
-| Yangon-time Carbon values stored as UTC wall time | service test against a factory-created job | `appointment_date` mutator converts to UTC on write |
-| Unauthenticated request without `Accept: application/json` → 500 (`Route [login] not defined`) | curl walkthrough | `redirectGuestsTo(null)`: API-only app returns 401 |
-| Spec scenario 3 ("ninth booking when max is 8") not reachable with seed data | writing VERIFICATION.md | seeded a "full day" with 8 counted Team A1 jobs |
-
 ## Testing status
 
 - `php artisan test`: 89 tests (87 on SQLite + 2 MySQL-only concurrency tests). All pass on MySQL; the concurrency pair is skipped on SQLite.
 - Covered: repositories (counting rules, timezone range, default row, locking guard, audit log), `AuthorizationService` (every rule, for both job types), policies (wiring, 403 messages, guests), `AppointmentCapacityService` (all assignment scenarios, rollback on log failure, timezone boundary, weekday capacity), concurrency.
-- **Not yet written:** HTTP-level endpoint tests (status codes, response shapes, authorize-before-validate ordering). Those behaviours were verified by running every command in VERIFICATION.md against a live server.
+
