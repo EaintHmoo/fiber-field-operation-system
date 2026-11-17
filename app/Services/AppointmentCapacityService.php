@@ -112,7 +112,10 @@ class AppointmentCapacityService
             $isFull = $usedSlots >= $capacity->max_slots;
 
             if ($isFull && ! $overrideRequested) {
-                throw new CapacityExceededException(new CapacitySnapshot($day, $capacity->max_slots, $usedSlots));
+                throw new CapacityExceededException(
+                    new CapacitySnapshot($day, $capacity->max_slots, $usedSlots),
+                    $this->authorization->canOverrideCapacity($actor),
+                );
             }
 
             $action = match (true) {

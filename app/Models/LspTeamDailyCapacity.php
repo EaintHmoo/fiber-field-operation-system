@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Database\Factories\LspTeamDailyCapacityFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,11 +10,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Per-weekday slot limit for a team. Weekday is Carbon dayOfWeek in Asia/Yangon (0 = Sunday).
  */
-#[Fillable(['lsp_team_id', 'day_of_week', 'max_slots'])]
 class LspTeamDailyCapacity extends Model
 {
     /** @use HasFactory<LspTeamDailyCapacityFactory> */
     use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'lsp_team_id',
+        'day_of_week',
+        'max_slots',
+    ];
 
     public const int DEFAULT_MAX_SLOTS = 8;
 

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\BookingAction;
 use App\Enums\RequestType;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -13,18 +12,24 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * Audit row for a booking change. request_type + request_id reference either
  * installation_requests or on_call_requests through the morph map.
  */
-#[Fillable([
-    'request_type',
-    'request_id',
-    'lsp_team_id',
-    'appointment_date',
-    'action',
-    'reason',
-    'actor_user_id',
-    'actor_lsp_user_id',
-])]
 class AppointmentBookingLog extends Model
 {
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'request_type',
+        'request_id',
+        'lsp_team_id',
+        'appointment_date',
+        'action',
+        'reason',
+        'actor_user_id',
+        'actor_lsp_user_id',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *

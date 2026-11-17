@@ -25,9 +25,6 @@ class AuthTokenService
 
     public function __construct(private AuthAccountRepositoryInterface $accounts) {}
 
-    /**
-     * @throws ValidationException when the credentials are wrong or the caller is locked out
-     */
     public function issueLspUserToken(string $email, string $password, string $deviceName, string $ip): NewAccessToken
     {
         $lspUser = $this->authenticate(
@@ -41,9 +38,6 @@ class AuthTokenService
         return $lspUser->createToken($deviceName, expiresAt: $this->expiresAt());
     }
 
-    /**
-     * @throws ValidationException when the credentials are wrong or the caller is locked out
-     */
     public function issueOperatorToken(string $email, string $password, string $deviceName, string $ip): NewAccessToken
     {
         $operator = $this->authenticate(
@@ -67,14 +61,6 @@ class AuthTokenService
         return $minutes === null ? null : CarbonImmutable::now()->addMinutes((int) $minutes);
     }
 
-    /**
-     * @template TActor of User|LspUser
-     *
-     * @param  Closure(string): (TActor|null)  $findAccount
-     * @return TActor
-     *
-     * @throws ValidationException
-     */
     private function authenticate(string $actorType, string $email, string $password, string $ip, Closure $findAccount): User|LspUser
     {
         $throttleKey = Str::transliterate(Str::lower($email).'|'.$actorType.'|'.$ip);

@@ -3,16 +3,23 @@
 namespace App\Models;
 
 use Database\Factories\AreaCodeFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['label'])]
 class AreaCode extends Model
 {
     /** @use HasFactory<AreaCodeFactory> */
     use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'label',
+    ];
 
     /**
      * @return BelongsToMany<Lsp, $this>

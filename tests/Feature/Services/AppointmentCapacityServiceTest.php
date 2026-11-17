@@ -91,6 +91,31 @@ class AppointmentCapacityServiceTest extends TestCase
             $this->assertSame(0, $exception->capacity->remainingSlots());
             $this->assertSame(422, $exception->render()->getStatusCode());
             $this->assertSame(0, $exception->render()->getData(true)['remaining_slots']);
+            $this->assertFalse($exception->canOverride);
+            $this->assertArrayNotHasKey('errors', $exception->render()->getData(true));
+        }
+
+        $this->assertNull($job->fresh()->appointment_date);
+        $this->assertDatabaseCount('appointment_booking_logs', 0);
+    }
+
+    public function test_full_day_without_override_reason_tells_permitted_operator_to_send_one(): void
+    {
+        $team = $this->teamWithThursdayCapacity(1);
+        InstallationRequest::factory()->forTeam($team)->appointmentAt($this->yangon(self::THURSDAY.' 09:00:00'))->create();
+        $job = InstallationRequest::factory()->forTeam($team)->create();
+
+        try {
+            $this->service()->book($job, $this->yangon(self::THURSDAY.' 10:00:00'), $this->operatorWithOverride());
+            $this->fail('Expected CapacityExceededException.');
+        } catch (CapacityExceededException $exception) {
+            $body = $exception->render()->getData(true);
+
+            $this->assertTrue($exception->canOverride);
+            $this->assertSame(422, $exception->render()->getStatusCode());
+            $this->assertSame(0, $body['remaining_slots']);
+            $this->assertStringContainsString('override_reason', $body['message']);
+            $this->assertArrayHasKey('override_reason', $body['errors']);
         }
 
         $this->assertNull($job->fresh()->appointment_date);
