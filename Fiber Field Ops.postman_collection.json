@@ -1,0 +1,278 @@
+{
+  "info": {
+    "_postman_id": "403c2811-ae26-4323-8fe6-f141407596c7",
+    "name": "Fiber Field Ops",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "9665182"
+  },
+  "item": [
+    {
+      "name": "Lsp User Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "a1.lead@alpha.test"
+            },
+            {
+              "key": "password",
+              "value": "password"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{url}}/auth/lsp-users/token",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "lsp-users",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Logout",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{lspToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": []
+        },
+        "url": {
+          "raw": "{{url}}/auth/token",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Data",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{lspToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": []
+        },
+        "url": {
+          "raw": "{{url}}/auth/me",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator User Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "ygn.operator@5bb.test"
+            },
+            {
+              "key": "password",
+              "value": "password"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{url}}/auth/operators/token",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "operators",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Installation Request",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{operatorToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accepts",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "appointment_date",
+              "value": "2026-11-17 00:30:00"
+            },
+            {
+              "key": "override_reason",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{url}}/installation_requests/4/appointment",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "installation_requests",
+            "4",
+            "appointment"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Lsp Team Capacity",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{operatorToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": []
+        },
+        "url": {
+          "raw": "{{url}}/lsp-teams/2/capacity?date=2026-11-17",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "lsp-teams",
+            "2",
+            "capacity"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "2026-11-17"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "On Call Request",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{superOperatorToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "appointment_date",
+              "value": "2026-11-17 00:30:00"
+            },
+            {
+              "key": "override_reason",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{url}}/on_call_requests/1/appointment",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "on_call_requests",
+            "1",
+            "appointment"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
